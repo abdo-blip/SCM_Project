@@ -3,17 +3,47 @@ services:
   app:
     build: 
       dockerfile: Dockerfile
-
     container_name: flask_app
     ports:
-      - 5000:5000
+      - "5000:5000"  
     volumes:
       - .:/app
     networks:
-      - Flask_network
+      - monitoring
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    
+    networks:
+      - monitoring
+
+  
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3001:3000"  
+    volumes:
+      - grafana-data:/var/lib/grafana  
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin   
+      - GF_SECURITY_ADMIN_PASSWORD=admin 
+    networks:
+      - monitoring
+      
 networks:
-  Flask_network:
+  monitoring:
     driver: bridge
+
+volumes:
+  grafana-data:
